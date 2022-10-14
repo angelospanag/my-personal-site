@@ -1,12 +1,11 @@
 ---
-name: Tails Azimuth
-avatar: /static/images/avatar.png
-occupation: Professor of Atmospheric Science
-company: Stanford University
-email: address@yoursite.com
-twitter: https://twitter.com/Twitter
-linkedin: https://www.linkedin.com
-github: https://github.com
+name: Angelos Panagiotopoulos
+avatar: /static/images/me.jpeg
+occupation: Software Engineer
+email: angelospanag@protonmail.com
+twitter: https://twitter.com/angelospanag
+linkedin: https://www.linkedin.com/in/angelos-panagiotopoulos-94524b4a/
+github: https://github.com/angelospanag
 ---
 
 Tails Azimuth is a professor of atmospheric sciences at the Stanford AI Lab. His research interests includes complexity modelling of tailwinds, headwinds and crosswinds.
