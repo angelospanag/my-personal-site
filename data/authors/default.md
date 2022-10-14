@@ -8,8 +8,18 @@ linkedin: https://www.linkedin.com/in/angelos-panagiotopoulos-94524b4a/
 github: https://github.com/angelospanag
 ---
 
-Tails Azimuth is a professor of atmospheric sciences at the Stanford AI Lab. His research interests includes complexity modelling of tailwinds, headwinds and crosswinds.
+### About me
 
-He leads the clean energy group which develops 3D air pollution-climate models, writes differential equation solvers, and manufactures titanium plated air ballons. In his free time he bakes raspberry pi.
+**Favourite languages/tools for software development?**
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed neque elit, tristique placerat feugiat ac, facilisis vitae arcu. Proin eget egestas augue. Praesent ut sem nec arcu pellentesque aliquet. Duis dapibus diam vel metus tempus vulputate.
+Mainly Python and Go for backend development and React/JavaScript/Next.js for frontend
+development. This blog is [making use of the above](https://github.com/angelospanag/my-personal-site) and [Vercel](https://vercel.com/) for automating its deployment.
+
+If I had to pick my favourite, that would be Python. Amazingly readable and powerful syntax with a
+rich ecosystem of libraries encompassing web development, machine learning, data science and desktop
+development.
+
+**Other interests?**
+
+I love listening to heavy metal and playing electric guitar, reading science-fiction and fantasy
+books, PC gaming and especially RPGs, exercising/running.
