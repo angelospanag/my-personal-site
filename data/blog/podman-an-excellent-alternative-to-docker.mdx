@@ -1,12 +1,12 @@
 ---
 title: Podman - An excellent alternative to Docker
 date: '2022-11-10'
-tags: ['python', 'podman', 'poetry', 'docker', 'virtualisation']
+tags: ['python', 'podman', 'fastapi', 'poetry', 'docker', 'virtualisation']
 draft: false
 summary: 'Podman - An excellent alternative to Docker'
 ---
 
-## Intro
+# Intro
 
 Podman has just released a [desktop client](https://podman-desktop.io/) for managing containers. For anyone not familiar with it, [Podman](https://podman.io/) is a free and [opensource](https://github.com/containers/podman) engine for managing and running [OCI containers](https://opencontainers.org/), based on open standards, while aiming to keep compatibility with Docker commands.
 
@@ -16,9 +16,11 @@ As their official documentation [mentions](https://podman.io/whatis.html#what-is
 
 ...and your Docker container workflow should work with no changes.
 
-## Creating a basic FastAPI app and running it with Podman
+# Creating a FastAPI app and containerising it with Podman
 
 I wanted to put that to the test using my favourite web framework written in Python during the last years, [FastAPI](https://fastapi.tiangolo.com/).
+
+## Creating a basic FastAPI skeleton app and sample endpoint
 
 Starting simple and creating a basic skeleton for our app, while initialising dependency management with another one of my favourite tools, [`Poetry`](https://python-poetry.org/):
 
@@ -34,7 +36,7 @@ We add the necessary runtime dependencies, FastAPI for the web framework and `uv
 poetry add fastapi uvicorn[standard]
 ```
 
-Last but not least, my mininum go-to linting and formatting libraries as development dependencies:
+Last but not least, adding my minimum go-to linting and formatting libraries as development dependencies:
 
 ```bash
 poetry add flake8 pep8-naming black --group dev
@@ -63,7 +65,7 @@ def read_root():
 
 We can now run the app using `uvicorn` by pointing to the FastAPI entrypoint:
 
-```
+```bash
 uvicorn app.main:app -r
 ```
 
@@ -82,11 +84,13 @@ content-type: application/json
 {"Hello":"World"}
 ```
 
-### Creating a Dockerfile for FastAPI
+## Creating a Containerfile/Dockerfile for FastAPI
 
-Inspired by the [official example from the FastAPI documentation](https://fastapi.tiangolo.com/deployment/docker/#docker-image-with-poetry), we can use Docker multi-stage building for our image. The first stage aliased as `requirements-stage` will install `Poetry`, copy the `Poetry` files that track the project's dependencies defined in `pyproject.toml` and locked in `poetry.lock`, and finally generate a `requirements.txt`.
+Inspired by the [official example from the FastAPI documentation](https://fastapi.tiangolo.com/deployment/docker/#docker-image-with-poetry), we can use Docker multi-stage building creating our final image. The first stage aliased as `requirements-stage` will install `Poetry`, copy the `Poetry` files that track the project's dependencies defined in `pyproject.toml` and locked in `poetry.lock`, and finally generate a `requirements.txt`.
 
 The second stage, which will be the one that our container will use to run, will use this generated `requirements.txt` to install the Python dependencies, copy the required Python project files, and finally run our server with `uvicorn`.
+
+Notice how the Dockerfile syntax remains the same (`WORKDIR`, `COPY`, `RUN` etc.) and we can even use the same tags (`FROM python:3.11`) for referencing [the official Python 3.11 image currently available in DockerHub](https://hub.docker.com/_/python/). Podman will fetch it and build it locally with no problems.
 
 ```Dockerfile
 FROM python:3.11 as requirements-stage
@@ -123,7 +127,7 @@ Our images now show up in the `Images` menu. For example we see `docker.io/libra
 
 ### Running a container
 
-```
+```bash
 podman container run -d --name fastapi-podman -p 8000:80 --network bridge fastapi-podman
 ```
 
@@ -155,7 +159,7 @@ Or using the desktop client in the `Containers` dialog:
 
 ### Testing and logging
 
-Performing the same request to the same endpoint as before (`curl -i localhost:8000`) gives us back the same JSON response and we can also see the output of the standard logging in the logs of the container, using similar commands to Docker:
+Performing the same request to the same endpoint as before (`curl localhost:8000`) gives us back the same JSON response. We can also follow the output of the standard logging of the running app that the container produces, using similar commands to Docker:
 
 ```bash
 podman logs -f fastapi-podman
@@ -173,24 +177,24 @@ INFO:     10.88.0.2:57182 - "GET /favicon.ico HTTP/1.1" 404 Not Found
 
 ![Podman Desktop showing FastAPI container logs](/static/images/podman-fastapi-logs.png 'Podman Desktop showing FastAPI container logs')
 
-## It even works with AWS!
+# It even works with AWS!
 
-Similarly, the syntax of the commands that are used to push an image to ECR is identical and the produced container runs with no issues! Just replace `docker` with `podman`.
+Similarly, the syntax of the commands that is used to push an image to Amazon Elastic Container Registry is identical. Just replace `docker` with `podman`!
 
-### Login To ECR
-
-```bash
-aws ecr get-login-password --region eu-west-2 | podman login -u YOUR_AWS_USERNAME --password-stdin YOUR_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com
-```
-
-### Push to ECR repo
+## Login To ECR
 
 ```bash
-podman push YOUR_ACCOUNT_NUMBER.dkr.ecr.eu-west-2.amazonaws.com/fastapi-podman
+aws ecr get-login-password --region eu-west-2 | podman login -u YOUR_AWS_USERNAME --password-stdin YOUR_ACCOUNT_NUMBER.dkr.ecr.YOUR_REGION.amazonaws.com
 ```
 
-## Summary
+## Push to ECR repo
+
+```bash
+podman push YOUR_ACCOUNT_NUMBER.dkr.ecr.YOUR_REGION.amazonaws.com/fastapi-podman
+```
+
+# Summary
 
 Impressive work by the Podman team, so far I had a very positive experience using their CLI and desktop client. I am definitely looking forward to use Podman in more projects.
 
-You can find the full example containing the code used in this post along with instructions on how to install and run Podman with a comprehensive README in a [repository on my personal GitHub](https://github.com/angelospanag/fastapi-podman).
+You can find the full example containing the code used in this post, along with instructions on how to install and run Podman with a comprehensive README in a [repository on my personal GitHub](https://github.com/angelospanag/fastapi-podman).
