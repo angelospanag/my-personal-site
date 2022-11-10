@@ -1,13 +1,14 @@
 const siteMetadata = {
-  title: 'Next.js Starter Blog',
+  title: 'Angelos Panagiotopoulos',
   author: 'Angelos Panagiotopoulos',
-  headerTitle: 'TailwindBlog',
-  description: 'A blog created with Next.js and Tailwind.css',
+  headerTitle: 'Angelos Panagiotopoulos',
+  description: 'My posts',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://www.angelospanag.me',
   siteRepo: 'https://github.com/angelospanag/my-personal-site',
-  siteLogo: '/static/images/logo.png',
+  siteLogo: '',
+  // siteLogo: '/static/images/logo.png',
   image: '/static/images/me.jpg',
   socialBanner: '/static/images/twitter-card.png',
   email: 'angelospanag@protonmail.com',
