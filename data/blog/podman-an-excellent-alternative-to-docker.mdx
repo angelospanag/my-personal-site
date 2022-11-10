@@ -134,10 +134,10 @@ podman container run -d --name fastapi-podman -p 8000:80 --network bridge fastap
 Again if you are familiar with Docker commands, there is complete parity with its Podman equivalent, the flags remain the same:
 
 - `-d` - run the container as a daemon
-- `--name fastapi-podman` - point to the previously tagged image
+- `--name fastapi-podman` - assign a name to the container
 - `-p 8000:80`- map the local port `8000` to the container port `80`
 - `--network bridge` - run the container in a bridge network
-- `fastapi-podman` - name the running container
+- `fastapi-podman` - point to the previously tagged image
 
 Alternatively, you can create a container from a Dockerfile/Containerfile or from an existing image in the local registry:
 
