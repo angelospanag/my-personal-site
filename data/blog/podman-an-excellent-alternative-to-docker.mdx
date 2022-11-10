@@ -184,7 +184,7 @@ Similarly, the syntax of the commands that is used to push an image to Amazon El
 ## Login To ECR
 
 ```bash
-aws ecr get-login-password --region eu-west-2 | podman login -u YOUR_AWS_USERNAME --password-stdin YOUR_ACCOUNT_NUMBER.dkr.ecr.YOUR_REGION.amazonaws.com
+aws ecr get-login-password --region YOUR_REGION | podman login -u YOUR_AWS_USERNAME --password-stdin YOUR_ACCOUNT_NUMBER.dkr.ecr.YOUR_REGION.amazonaws.com
 ```
 
 ## Push to ECR repo
