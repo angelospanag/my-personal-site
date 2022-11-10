@@ -10,7 +10,7 @@ github: https://github.com/angelospanag
 
 ### About me
 
-Hello, I am Angelos, an Application Development Associate Manager at Accenture UK.
+Hello, I am Angelos, an Application Development Associate Manager at [Accenture UK](https://www.accenture.com/gb-en).
 
 **Favourite languages/tools for software development?**
 
