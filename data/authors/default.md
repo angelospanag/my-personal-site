@@ -10,10 +10,11 @@ github: https://github.com/angelospanag
 
 ### About me
 
+Hello, I am Angelos, an Application Development Associate Manager at Accenture UK.
+
 **Favourite languages/tools for software development?**
 
-Mainly Python and Go for backend development and React/JavaScript/Next.js for frontend
-development. This blog is [making use of the above](https://github.com/angelospanag/my-personal-site) and [Vercel](https://vercel.com/) for automating its deployment.
+Mainly Python and Go for backend development and React/TypeScript/JavaScript/Next.js for frontend development. This blog is [using Next.js](https://github.com/angelospanag/my-personal-site) and [Vercel](https://vercel.com/) for automating its deployment.
 
 If I had to pick my favourite, that would be Python. Amazingly readable and powerful syntax with a
 rich ecosystem of libraries encompassing web development, machine learning, data science and desktop
