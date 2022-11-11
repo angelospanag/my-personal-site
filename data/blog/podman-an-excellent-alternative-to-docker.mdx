@@ -86,7 +86,7 @@ content-type: application/json
 
 ## Creating a Containerfile/Dockerfile for FastAPI
 
-Inspired by the [official example from the FastAPI documentation](https://fastapi.tiangolo.com/deployment/docker/#docker-image-with-poetry), we can use Docker multi-stage building creating our final image. The first stage aliased as `requirements-stage` will install `Poetry`, copy the `Poetry` files that track the project's dependencies defined in `pyproject.toml` and locked in `poetry.lock`, and finally generate a `requirements.txt`.
+Inspired by the [official example from the FastAPI documentation](https://fastapi.tiangolo.com/deployment/docker/#docker-image-with-poetry), we can use Docker multi-stage building for creating our final image. The first stage aliased as `requirements-stage` will install `Poetry`, copy the `Poetry` files that track the project's dependencies defined in `pyproject.toml` and locked in `poetry.lock`, and finally generate a `requirements.txt`.
 
 The second stage, which will be the one that our container will use to run, will use this generated `requirements.txt` to install the Python dependencies, copy the required Python project files, and finally run our server with `uvicorn`.
 
