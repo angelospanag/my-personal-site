@@ -15,6 +15,7 @@ const siteMetadata = {
   github: 'https://github.com/angelospanag',
   twitter: 'https://twitter.com/angelospanag',
   linkedin: 'https://www.linkedin.com/in/angelos-panagiotopoulos-94524b4a/',
+  cv: '/static/CV_Angelos_Panagiotopoulos.pdf',
   locale: 'en-US',
   analytics: {
     // If you want to use an analytics provider you have to add it to the

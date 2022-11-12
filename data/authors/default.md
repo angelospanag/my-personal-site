@@ -6,6 +6,7 @@ email: angelospanag@protonmail.com
 twitter: https://twitter.com/angelospanag
 linkedin: https://www.linkedin.com/in/angelos-panagiotopoulos-94524b4a/
 github: https://github.com/angelospanag
+cv: /static/CV_Angelos_Panagiotopoulos.pdf
 ---
 
 ### About me
