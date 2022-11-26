@@ -9,7 +9,7 @@ github: https://github.com/angelospanag
 cv: /static/CV_Angelos_Panagiotopoulos.pdf
 ---
 
-### About me
+## About me
 
 Hello, I am Angelos, an Application Development Associate Manager at [Accenture UK](https://www.accenture.com/gb-en).
 
@@ -25,3 +25,18 @@ development.
 
 I love listening to heavy metal and playing electric guitar, reading science-fiction and fantasy
 books, PC gaming and especially RPGs, exercising/running.
+
+### Certifications
+
+<div class="flex flex-row">
+    <div>
+        <a href="https://www.credly.com/badges/9657b7f6-e611-4f73-b7ef-b85323dd64d4/public_url" class="max-w-full">
+            <img src="/static/images/aws-certified-developer-associate.png" alt="AWS Certified Developer Associate badge"/>
+        </a>
+    </div>
+    <div>
+        <a href="https://www.credential.net/96fc938e-2b83-4102-a5cd-479dd66c5b6d" class="max-w-full h-auto">
+        <img src="/static/images/gcp-certified-cloud-engineer-associate.png" alt="GCP Certified Cloud Engineer Associate badge"/>
+        </a>
+    </div>
+</div>
