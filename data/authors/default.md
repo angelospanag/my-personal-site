@@ -39,4 +39,9 @@ books, PC gaming and especially RPGs, exercising/running.
         <img src="/static/images/gcp-certified-cloud-engineer-associate.png" alt="GCP Certified Cloud Engineer Associate badge"/>
         </a>
     </div>
+    <div>
+        <a href="https://credentials.databricks.com/1fbe993d-6204-40e2-948a-7cb3dcc42393" class="max-w-full h-auto">
+        <img src="/static/images/databricks-lakehouse-fundamentals.png" alt="Databricks Lakehouse Fundamentals badge"/>
+        </a>
+    </div>
 </div>
