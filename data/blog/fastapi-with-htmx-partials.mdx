@@ -1,0 +1,196 @@
+---
+title: FastAPI with HTMX partials
+date: '2023-4-3'
+tags: ['python', 'fastapi', 'htmx']
+draft: false
+summary: 'Avoid accidental page loads of HTMX partials in your FastAPI app'
+---
+
+- [Intro](#intro)
+- [Setting up an example FastAPI app that serves templates containing HTMX](#setting-up-an-example-fastapi-app-that-serves-templates-containing-htmx)
+- [Why this setup could go wrong](#why-this-setup-could-go-wrong)
+- [How can this be avoided](#how-can-this-be-avoided)
+- [Conclusion](#conclusion)
+
+## Intro
+
+[HTMX](https://htmx.org/) has become one of my favourite minimalistic frontend libraries to use in combination with a FastAPI/Python project. The JavaScript/React fatigue is real.
+
+This post will not be introducing HTMX from scratch, but rather mention an elegant way to avoid a common unwanted behaviour that you might face in your application, the accidental loading of partial pages which are normally intended as responses to an HTMX request.
+
+## Setting up an example FastAPI app that serves templates containing HTMX
+
+Supposedly you have a FastAPI backend that serves you a basic HTML page with some minimal CSS, a header "Sci-Fi Movies" and a button "Get movies table". A pretty basic page.
+
+![Movies initial page](/static/images/movies-no-table.png 'Movies initial page')
+
+The HTML in `templates/index.html` looks as followed:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://unpkg.com/htmx.org@1.8.6"></script>
+    <style>
+      body {
+        background-color: #222;
+        color: #fff;
+        font-family: Arial, sans-serif;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin: 20px auto;
+        width: 80%;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+
+      th {
+        background-color: #333;
+      }
+
+      tr:nth-child(even) {
+        background-color: #444;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sci-Fi Movies</h1>
+    <button hx-get="/movies" hx-trigger="click" hx-target="#movies" hx-swap="outerHTML">
+      Get movies table
+    </button>
+    <div id="movies"></div>
+  </body>
+</html>
+```
+
+The actual movies table can reside in an HTML file `templates/movies.html` as followed:
+
+```html
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Director</th>
+      <th>Release Year</th>
+      <th>IMDb Rating</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Blade Runner</td>
+      <td>Ridley Scott</td>
+      <td>1982</td>
+      <td>8.1</td>
+    </tr>
+    <tr>
+      <td>The Matrix</td>
+      <td>The Wachowskis</td>
+      <td>1999</td>
+      <td>8.7</td>
+    </tr>
+    <tr>
+      <td>Inception</td>
+      <td>Christopher Nolan</td>
+      <td>2010</td>
+      <td>8.8</td>
+    </tr>
+    <tr>
+      <td>Interstellar</td>
+      <td>Christopher Nolan</td>
+      <td>2014</td>
+      <td>8.6</td>
+    </tr>
+    <tr>
+      <td>Avatar</td>
+      <td>James Cameron</td>
+      <td>2009</td>
+      <td>7.8</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+When the button is clicked, an HTMX GET call is performed against `/movies` which will fetch an HTML response containing movies rendered in a table, and replace the empty `div` with id `movies`. A very simple example that showcases the flexibility and terse syntax of HTMX.
+
+```html
+<button hx-get="/movies" hx-trigger="click" hx-target="#movies" hx-swap="outerHTML">
+  Get movies table
+</button>
+<div id="movies"></div>
+```
+
+The backend side of what we have done so far can be in a `main.py` file that looks like this:
+
+```python
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/movies", response_class=HTMLResponse)
+async def get_movies(request: Request):
+    return templates.TemplateResponse("movies.html", {"request": request})
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+```
+
+The app works as intended. If we visit `http://localhost:8000/` and click the `Get movies table` button, we see the table loaded on the screen while the CSS styling is respected according to the rules defined in `index.html`.
+
+![Movies table HTML partial loaded correctly with HTMX](/static/images/movies-table.png 'Movies table HTML partial loaded correctly with HTMX')
+
+## Why this setup could go wrong
+
+If a user accidentally visits `http://localhost:8000/movies` then the template `movies.html` will load, which simply contains our raw HTML table with no styles defined. This page is effectively a partial that should only be loaded as a result of an HTMX call, not on its own.
+
+![Movies table HTML partial loaded with no styling](/static/images/movies-partial-loaded.png 'Movies table HTML partial loaded with no styling')
+
+## How can this be avoided
+
+Regardless of your backend solution, you can [check that a request is coming from HTMX by checking for the existence of the `hx-request` header](https://htmx.org/docs/#request-header): `{'hx-request': 'true'}`. [FastAPI offers a very elegant dependency injection system](https://fastapi.tiangolo.com/tutorial/dependencies/) which we can leverage for this exact purpose.
+
+We can define a function `is_partial_rendering` which accepts the `Request` object of an HTTP call, accesses its headers, checks that a header `{'hx-request': 'true'}` exists, and continues with serving the request normally, otherwise it redirects the user with an HTTP status `307` to the root `/` endpoint of the FastAPI app.
+
+That dependency in turn can be injected to our `/movies` endpoint as an argument with `_=Depends(is_partial_rendering)`.
+
+```python
+async def is_partial_rendering(request: Request):
+    if "hx-request" in request.headers:
+        if not request.headers["hx-request"]:
+            raise HTTPException(
+                status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+                headers={"Location": "/"},
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+            headers={"Location": "/"},
+        )
+
+@app.get("/movies", response_class=HTMLResponse)
+async def get_movies(
+    request: Request,
+    _=Depends(is_partial_rendering),
+):
+    return templates.TemplateResponse("movies.html", {"request": request})
+```
+
+## Conclusion
+
+A very simple but crucial trick that leverages Dependencies, one of the most useful features of FastAPI, and can be used to make a frontend codebase using HTMX more robust.
+
+You can view the final result of this post as a gist [here](https://gist.github.com/angelospanag/4b875350e72b3241b0ccac18db09567e).

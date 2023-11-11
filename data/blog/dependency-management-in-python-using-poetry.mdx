@@ -1,0 +1,151 @@
+---
+title: Dependency management in Python using Poetry
+date: '2022-10-14'
+tags: ['python', 'poetry', 'virtual environments']
+draft: false
+summary: 'A modern way to do dependency management in your Python projects'
+---
+
+- [Intro](#intro)
+- [Advantages of `Poetry`](#advantages-of-poetry)
+  - [Creation and management of virtual environments](#creation-and-management-of-virtual-environments)
+  - [Separation between runtime and development dependencies](#separation-between-runtime-and-development-dependencies)
+  - [Version constraints](#version-constraints)
+  - [Sub dependencies and conflict resolution](#sub-dependencies-and-conflict-resolution)
+    - [Lockfiles](#lockfiles)
+  - [Use `Poetry` with different Python versions](#use-poetry-with-different-python-versions)
+  - [Export dependencies to `requirements.txt` files](#export-dependencies-to-requirementstxt-files)
+  - [Bonus items](#bonus-items)
+- [Final thoughts](#final-thoughts)
+
+## Intro
+
+Over the latest years there have been many dependency management solutions for developing a Python application, starting with the tooling provided from the standard library (`pip`, `easyinstall`, `venv` module) and moving to convenient wrappers like `virtualenv`, `virtualenvwrapper`,`pip-tools` and more recently `pipenv` and `Poetry`. Additionally, the Python SoftwareFoundation has made some efforts to introduce a new dependency specification (the latest proposal at this time of writing seems to be [PEP 631](https://www.python.org/dev/peps/pep-0631/)).
+
+It sounds unmanageable to keep track of all this tooling and I apologise if I missed any. In fact, you will find many blogs that touch on the same subject and are referencing XKCD, one of the most popular webcomics [which has made fun of this very situation](https://xkcd.com/1987/) ...because of course 'there is always a relevant XKCD'.
+
+Many points can be made about each one and its approach but one of the most popular (and my personal favourite which I have used successfully during the latest years) has been [Poetry](https://python-poetry.org/).
+
+## Advantages of `Poetry`
+
+Below are some features of `Poetry` that have helped me in my everyday work with Python. This is not an exhaustive list by far but its [documentation](https://python-poetry.org/docs/) is excellent for anyone who wants to go into more detail.
+
+Anyone with a JavaScript/npm or PHP/composer background will notice many similarities that have been already existing for their language environment and that have been sorely missed from Python and `pip` for a long time.
+
+Assuming you have a working Python on your machine, [the most straightforward way](https://python-poetry.org/docs/#installation) you can install it is:
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+or if you are using brew on macOS:
+
+```bash
+brew install poetry
+```
+
+### Creation and management of virtual environments
+
+As mentioned above, you can always initialise and manage virtual environments with the Python standard library or with any abstractions on top of it (like `virtualenv`, `virtualenvwrapper`). `Poetry` though automates and manages all of that for you. With `poetry init` you can initialise a venv for your project and with `Poetry shell` you can activate it. Installing and removing a dependency like Django is as easy as `poetry add Django` and respectively `poetry remove Django`. All this without having to activate the virtual environment of your Python project first since `poetry` keeps track of its location when it is first created.
+
+### Separation between runtime and development dependencies
+
+You can now separate between runtime dependencies and development dependencies in your Python project.
+
+For example, you might want your project to use Django and Gunicorn for creating and running a web app but also `flake8` and `pytest` for linting and testing it. `Poetry` makes this possible just by running the following commands:
+
+```bash
+poetry add django gunicorn
+poetry add flake8 pytest --group test
+```
+
+The result will be a `pyproject.toml` file which will contain the following lines:
+
+```toml
+[tool.poetry.dependencies]
+python = "^3.9"
+Django = "^3.1.6"
+gunicorn = "^20.0.4"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.8.4"
+pytest = "^6.2.2"
+```
+
+If at some point your project needs to be deployed on a production environment or inside a lightweight Docker container then you can use `poetry install --no-dev` to install only its runtime dependencies.
+
+### Version constraints
+
+Recently `pip` reimplemented [the ability to define constraints](https://pip.pypa.io/en/stable/user_guide/#constraints-files) that control the version of your dependencies that are allowed to be installed, by using ...an additional `constraints.txt` file.
+
+`Poetry` follows a more traditional (saner?) approach by using similar syntax (tildes, carets, wildcards) that you would find in `npm` or `composer`. Anyone coming from these backgrounds should be comfortable in
+defining dependencies in `Poetry` and its [documentation](https://python-poetry.org/docs/dependency-specification/#version-constraints) provides many examples. In my example above, the caret (^) symbol would allow updates to versions of Django from 3.1.6, up to but not including version 4.
+
+### Sub dependencies and conflict resolution
+
+`Poetry` keeps track of the dependency tree from your defined dependencies and handles any conflicts. Similarly to `pip`, if two or more dependencies require the same sub-dependency, then `Poetry` will attempt to use the version of the sub-dependency that is compatible with all them.
+
+`Poetry` goes a step further than `pip` though. If a sub-dependency is not required by any of the main dependencies it will also be removed, something which unfortunately has not been possible so far with `pip`. No more orphaned dependencies on your environment!
+
+All this is possible because of...
+
+#### Lockfiles
+
+In addition to the standard `pyproject.toml` that contains the main dependencies of your project, `poetry` generates a lockfile `poetry.lock` that makes all of the above possible. Effectively it resolves and 'freezes' the dependency tree of your project to its last working state. In fact, it is even [recommended](https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control) to commit this lockfile in any version control (like Git) so that anyone who uses your application will run it on the exact same dependencies specified in it. The generation of this file is automatically handled by `poetry` and you will never have to edit it manually.
+
+For example, applications that require Django would have a snippet like the one below in their lockfile that details exactly what is needed to be installed along with it:
+
+```toml
+[[package]]
+name = "django"
+version = "3.1.6"
+description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
+category = "main"
+optional = false
+python-versions = )=3.6"
+
+[package.dependencies]
+asgiref = )=3.2.10,<4"
+pytz = "\*"
+sqlparse = )=0.2.2"
+```
+
+### Use `Poetry` with different Python versions
+
+If you have multiple installed versions of Python on your machine, you can [point](https://python-poetry.org/docs/managing-environments/#switching-between-environments) `Poetry` to the one that you want to use with your project with:
+
+```bash
+poetry env use /full/path/to/python
+```
+
+### Export dependencies to `requirements.txt` files
+
+Finally, if for some reason you are required to use a `requirements.txt` file for your project (maybe using a minimal Python Docker image that contains only `pip`), `poetry` [can export dependencies in that format](https://python-poetry.org/docs/cli/#export) with one command:
+
+```bash
+poetry export -f requirements.txt --output requirements.txt
+```
+
+### Bonus items
+
+- `Poetry` by default stores a generated virtual environment in a local directory in your home folder, outside the project root. My personal preference is to have it in a`.venv`folder at the root of my project. `Poetry` [gives you this option](https://python-poetry.org/docs/configuration/#virtualenvsin-project-boolean) which can be also configured as an environment variable. I usually add this to my `.bashrc`:
+
+```bash
+export POETRY_VIRTUALENVS_IN_PROJECT=1
+```
+
+- PyCharm has added support for `Poetry` since [version 2021.3](https://blog.jetbrains.com/pycharm/2021/12/2021-3/#Poetry_Support).
+
+- Visual Studio Code has added built-in support for `Poetry` since its [April 2021 Release](https://devblogs.microsoft.com/python/python-in-visual-studio-code-april-2021-release/).
+
+## Final thoughts
+
+Try it yourself! If you are creating something with Python and want to try a more opinionated and efficient way to manage your project's dependencies, try `Poetry`!
+
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+mkdir my_project
+cd my_project
+poetry init
+```
+

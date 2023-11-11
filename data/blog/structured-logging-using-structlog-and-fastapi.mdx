@@ -1,0 +1,339 @@
+---
+title: Structured logging using structlog and FastAPI
+date: '2023-01-05'
+tags: ['python', 'logging', 'structured logging', 'fastapi', 'structlog']
+draft: false
+summary: 'Useful tips for adding structured logging to a FastAPI backend'
+---
+
+- [Intro](#intro)
+- [Integrating structlog with FastAPI](#integrating-structlog-with-fastapi)
+- [Configuring structlog in a FastAPI app](#configuring-structlog-in-a-fastapi-app)
+- [Adding logging variables to every request](#adding-logging-variables-to-every-request)
+- [Logging context variables across different layers of the app](#logging-context-variables-across-different-layers-of-the-app)
+    - [Testing with an ID that exists](#testing-with-an-id-that-exists)
+    - [Testing with an ID that does not exist](#testing-with-an-id-that-does-not-exist)
+  - [Load balancing and health checks](#load-balancing-and-health-checks)
+- [Conclusion](#conclusion)
+
+
+## Intro
+
+I have gradually shifted to using and promoting the usage of structured logging to all the projects I am being involved with. Essentially, instead of using raw logs, you opt for logging events associated with key-pair values, while at the same time you can bind context variables that are present to every subsequent logging call.
+
+Both features are extremely useful in the context of a backend web app, where each request might span multiple layers of functionality, from a view all the way to a database layer. Even more so, if you would want useful metrics from your logs about for how your app behaves and is used from your users. Structured logging greatly facilitates the parsing and aggregation of those logs.
+
+For that purpose I have been using [structlog](https://www.structlog.org/en/stable/index.html), one of the most flexible and powerful Python packages that performs structured logging, in combination with my favourite web framework [FastAPI](https://fastapi.tiangolo.com/).
+
+Borrowing the simplest official examples from `structlog`, each log entry now is an event with key-pair values that contain easily parsable information:
+
+```python
+from structlog import get_logger
+log = get_logger()
+log.info("key_value_logging", out_of_the_box=True, effort=0)
+
+# Output
+# 2020-11-18 09:17:09 [info] key_value_logging effort=0 out_of_the_box=True
+```
+
+Combined with the binding of context variables to threads, this functionality is invaluable for doing proper logging across multiple layers in your app:
+
+```python
+log = log.bind(user="anonymous", some_key=23)
+log = log.bind(user="hynek", another_key=42)
+log.info("user.logged_in", happy=True)
+
+# Output
+# 2020-11-18 09:18:28 [info] user.logged_in another_key=42 happy=True some_key=23 user=hynek
+```
+
+## Integrating structlog with FastAPI
+
+For the purposes of this guide I am keeping all my code in an `app` folder at the root of the project and using `Poetry` to install the necessary dependencies:
+
+```bash
+mkdir fastapi-structlog
+cd fastapi-structlog
+poetry init
+poetry add fastapi uvicorn[standard]
+poetry add ruff black --group dev # Optional linting and formatting libraries
+mkdir app
+```
+
+## Configuring structlog in a FastAPI app
+
+`structlog` configuration should be initialised as early as possible in the lifetime of an app. A common pattern I have used is to include it in an `__init__.py` file located in the same module where the FastAPI initialiser is located. In that way, despite the fact that we will be starting our server by targeting the FastAPI initialiser in a different file in the same module, the below statements that configure `structlog` will always be executed first.
+
+A minimal `src/__init__.py` I use, looks like the following:
+
+```python
+import logging
+import sys
+
+import structlog
+
+log = structlog.get_logger()
+
+# Disable uvicorn logging
+logging.getLogger("uvicorn.error").disabled = True
+logging.getLogger("uvicorn.access").disabled = True
+
+# Structlog configuration
+logging.basicConfig(format="%(message)s", stream=sys.stdout, level=logging.INFO)
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.processors.TimeStamper(fmt="iso", utc=True),
+        structlog.dev.ConsoleRenderer(),
+    ],
+    logger_factory=structlog.PrintLoggerFactory(),
+)
+```
+
+In order to avoid duplicate logs produced by the `uvicorn` server, I usually opt to disable its dedicated loggers `uvicorn.error` and `uvicorn.access`.
+
+The rest of the configuration are common processors used in `structlog`, among the many found in its [API](https://www.structlog.org/en/stable/api.html#api-reference):
+
+- `structlog.contextvars.merge_contextvars` - merges any key-pairs found in a global context
+- `structlog.processors.add_log_level` - Adds the log level to the event dict under the level key.
+- `structlog.processors.StackInfoRenderer()` - Allows you to add a stack dump to log entries
+- `structlog.processors.TimeStamper(fmt="iso", utc=True)` - Adds timestamps using the [ISO 8601 international standard](https://en.wikipedia.org/wiki/ISO_8601)
+- `structlog.dev.ConsoleRenderer()` - Uses a console renderer
+
+I often switch the `ConsoleRender` with a `JSONRenderer` so all logs are produced in JSON format for easier parsing.
+
+We can now create a `src/main.py` containing the FastAPI initialiser:
+
+```python
+import structlog
+from fastapi import FastAPI
+
+app = FastAPI()
+logger = structlog.get_logger()
+```
+
+Finally, we can run the `uvicorn` server from the root of the project, specifying the FastAPI initialiser in `main.py`:
+
+```bash
+uvicorn src.main:app --reload
+```
+
+## Adding logging variables to every request
+
+Our server runs but it doesn't do much. For now, we haven't specified any endpoints or a way for `structlog` to automatically create logs with each endpoint call.
+
+In order to do that we can take advantage of a [FastAPI middleware](https://fastapi.tiangolo.com/tutorial/middleware/), essentially functionality that will always run before a request is processed and before returning a response.
+
+`src/main.py`
+
+```python
+import structlog
+from fastapi import FastAPI, HTTPException, Request, Response
+
+@app.middleware("http")
+async def logger_middleware(request: Request, call_next):
+    # Clear previous context variables
+    structlog.contextvars.clear_contextvars()
+
+    # Bind new variables identifying the request and a generated UUID
+    structlog.contextvars.bind_contextvars(
+        path=request.url.path,
+        method=request.method,
+        client_host=request.client.host,
+        request_id=str(uuid.uuid4()),
+    )
+
+    # Make the request and receive a response
+    response = await call_next(request)
+
+    # Bind the status code of the response
+    structlog.contextvars.bind_contextvars(
+        status_code=response.status_code,
+    )
+
+    if 400 <= response.status_code < 500:
+        logger.warn("Client error")
+    elif response.status_code >= 500:
+        logger.error("Server error")
+    else:
+        logger.info("OK")
+
+    return response
+```
+
+Here we see the first usage the aforementioned [context variables](https://www.structlog.org/en/stable/contextvars.html#context-variables). This middleware is the point where we will be binding variables that will be included in every subsequent logging call of our web request.
+
+Initially we clear any context variables previously found the same thread. Then, in our example we use the following values taken from the FastAPI `Request` object:
+
+- the URL path (`request.url.path`) of the request
+- the request method (`request.method`)
+- the IP of the client that initiated the request (`request.client.host`)
+
+We can also add a unique identifier to our web request (`uuid.uuid4()`). The usage of a [UUID](https://docs.python.org/3/library/uuid.html#uuid.uuid4) is ideal for this. By generating a unique identifier attached to every log produced from the same web request, we can easily track all actions taken within its lifetime by filtering our logs for that identifier, extremely useful in combination with logging aggregators like Cloudwatch or Elasticsearch/Logstash.
+
+After our request is processed, we can add the status code of the response take from the FastAPI response object (`response.status_code`). That's why I usually add some checks at the end of the middleware to output `warning` level logs for any 4** status codes, `error` level logs for any 5** status codes and `info` level logs for the rest.
+
+## Logging context variables across different layers of the app
+
+We can see this in action by creating a "database" layer in our app existing in a different file that gets called by the view layer of our app. All logs across those layers will hold the context logging variables (`path`, `method`, `client_host`) that we have specified in the above FastAPI middleware, along with a UUID (`request_id`).
+
+For simplicity, we can emulate a database as a Python list that contains dictionaries of items. We can then define `get_item` function that will return an item's details given its ID, otherwise it returns `None`.
+
+```python
+import structlog
+
+log = structlog.get_logger()
+
+
+items: list[dict] = [{"id": 1, "name": "foo", "availability": 2}]
+
+
+def get_item(item_id: int) -> dict | None:
+    for item in items:
+        if item["id"] == item_id:
+            log.info("Item found", item_id=item_id)
+            return item
+
+    log.warn("Item not found", item_id=item_id)
+    return None
+```
+
+We can now make use of the `get_item` function defined in the "database layer" and create an endpoint that accepts an ID as a path parameter. If the item exists in our database, we return it as a JSON with a status code 200, otherwise we return a message "Item not found" with a status code 404.
+
+Also, by taking advantage of the integration between Pydantic and FastAPI, we can create a schema of an item as a Pydantic model and set this as the response model in our new endpoint:
+
+`src/schemas.py`
+
+```python
+from pydantic import BaseModel
+
+
+class Item(BaseModel):
+    id: int
+    name: str
+    availability: int
+```
+
+`src/main.py`
+
+```python
+from src.db import get_item
+from src.schemas import Item
+
+
+@app.get("/items/{item_id}", response_model=Item)
+async def root(item_id: int):
+    logger.info("Retrieving item")
+    item: dict | None = get_item(item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
+```
+
+#### Testing with an ID that exists
+
+```bash
+curl http://localhost:8000/items/1
+```
+
+```json
+{
+  "id": 1,
+  "name": "foo",
+  "availability": 2
+}
+```
+
+```log
+2023-01-07T12:04:47.650855Z [info] Retrieving item client_host=127.0.0.1 method=GET path=/items/1 request_id=39028224-5807-4f3f-86e1-f4b55786510d
+2023-01-07T12:04:47.651002Z [info] Item found  client_host=127.0.0.1 item_id=1 method=GET path=/items/1 request_id=39028224-5807-4f3f-86e1-f4b55786510d
+2023-01-07T12:04:47.651489Z [info] OK  client_host=127.0.0.1 method=GET path=/items/1 request_id=39028224-5807-4f3f-86e1-f4b55786510d status_code=200
+```
+
+Notice how our logs associated with the request, contain the same `request_id` (UUID), `path`, `method` and `client_host` generated from the FastAPI middleware we defined above, even if they are generated from different files within the app. The last log contains the `status_code` added after our request is processed, and we know its value from the response object.
+
+#### Testing with an ID that does not exist
+
+We can see similar results by testing with an ID is not found in our database:
+
+```bash
+curl http://localhost:8000/items/2
+```
+
+```json
+{
+  "detail": "Item not found"
+}
+```
+
+```log
+2023-01-07T12:05:55.532626Z [info] Retrieving item client_host=127.0.0.1 method=GET path=/items/2 request_id=fa15a357-2a93-459f-b87d-0bff2b0cc7b1
+2023-01-07T12:05:55.532750Z [warning] Item not found client_host=127.0.0.1 item_id=2 method=GET path=/items/2 request_id=fa15a357-2a93-459f-b87d-0bff2b0cc7b1
+2023-01-07T12:05:55.533241Z [warning] Client error client_host=127.0.0.1 method=GET path=/items/2 request_id=fa15a357-2a93-459f-b87d-0bff2b0cc7b1 status_code=404
+```
+
+### Load balancing and health checks
+
+If you are using any form of load balancing that relies on an HTTP `healthcheck` endpoint to check the health of a distributed service by querying it periodically (for example [AWS Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) or [Kubernetes load balancing](https://kubernetes.io/docs/concepts/services-networking/ingress/#load-balancing)), your logs will be spammed with the same entry that shows that endpoint being called every few seconds.
+
+Given a simple healthcheck FastAPI endpoint that returns a 200:
+
+```python
+@app.get("/healthcheck")
+async def healthcheck():
+    return Response()
+```
+
+Then the logs would probably look as followed:
+
+```log
+2000-01-01T00:00:00.000000Z [info] OK client_host=127.0.0.1 method=GET request_id=d5bdb5e7-e2eb-4453-9f31-09332d851998 status_code=200 view=/healthcheck
+2000-01-01T00:00:10.000000Z [info] OK client_host=127.0.0.1 method=GET request_id=5247b752-37ca-4a65-ac93-34123a86d9fd status_code=200 view=/healthcheck
+2000-01-01T00:00:20.000000Z [info] OK client_host=127.0.0.1 method=GET request_id=f68233a3-1c1a-4511-9274-ddacadc992a3 status_code=200 view=/healthcheck
+2000-01-01T00:00:30.000000Z [info] OK client_host=127.0.0.1 method=GET request_id=f2b51d29-f16d-41ca-b59b-2ac97fcaad13 status_code=200 view=/healthcheck
+```
+
+In order to avoid that, I always add a check in the aforementioned FastAPI middleware that tests if the requested path is `/healtcheck` and excludes it from producing logs. The rest of the middleware functionality remains as is:
+
+`src/main.py`
+
+```python
+import structlog
+from fastapi import FastAPI, HTTPException, Request, Response
+
+
+@app.middleware("http")
+async def logger_middleware(request: Request, call_next):
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(
+        path=request.url.path,
+        method=request.method,
+        client_host=request.client.host,
+        request_id=str(uuid.uuid4()),
+    )
+    response = await call_next(request)
+
+    structlog.contextvars.bind_contextvars(
+        status_code=response.status_code,
+    )
+
+    # Exclude /healthcheck endpoint from producing logs
+    if request.url.path != "/healthcheck":
+        if 400 <= response.status_code < 500:
+            logger.warn("Client error")
+        elif response.status_code >= 500:
+            logger.error("Server error")
+        else:
+            logger.info("OK")
+
+    return response
+```
+
+## Conclusion
+
+Investing on using structured logging and abundant logging statements, even from early during development, is one of the most useful practices that can provide clarity on how your application works and produce easily parsable metrics with minimal effort.
+
+For that reason, I have included all the above-mentioned code [in a starter project I maintain on my GitHub](https://github.com/angelospanag/fastapi-poetry-starter) that I use for my personal projects, or as a point of reference to showcase to my colleagues. If you found this useful, feel free to use it for your own projects.

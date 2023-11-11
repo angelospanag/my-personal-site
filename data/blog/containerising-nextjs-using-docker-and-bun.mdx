@@ -1,0 +1,166 @@
+---
+title: Containerising Next.js using Docker and Bun
+date: '2023-09-17'
+tags: ['nextjs', 'bun', 'docker', 'javascript', 'typescript']
+draft: false
+summary: 'Using the newest JavaScript runtime with Next.js and Docker'
+---
+
+- [Intro](#intro)
+- [Installing Bun and scaffolding a new Next.js project](#installing-bun-and-scaffolding-a-new-nextjs-project)
+- [Containerising our new Next.js project](#containerising-our-new-nextjs-project)
+- [Full Dockerfile](#full-dockerfile)
+- [Building the Docker image and running it as a container](#building-the-docker-image-and-running-it-as-a-container)
+
+## Intro
+
+[Bun](https://bun.sh/) is a new performant JavaScript runtime and toolkit containing its own bundler, test runner and package manager, while aiming to be a drop-in replacement for existing projects using Node.js. At the time of writing it has reached version 1.0.2, and I had the chance to test it with some personal and work projects, including using it in combination with [Next.js](https://nextjs.org/) in Docker containers.
+
+So far I have been really impressed with its performance and its compatibility with existing projects. Below I am showing you how to containerise a Next.js project using Bun, with minimal changes from the official documentation.
+
+## Installing Bun and scaffolding a new Next.js project
+
+The official documentation offers many alternatives on [how to install Bun](https://bun.sh/docs/installation), the quickest is:
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
+After that, creating a new Next.js project is as easy as:
+
+```bash
+bunx create-next-app
+```
+
+## Containerising our new Next.js project
+
+Vercel offers guidelines in their official documentation on [how to create a Docker image](https://nextjs.org/docs/app/building-your-application/deploying#docker-image) along with [a sample repository](https://github.com/vercel/next.js/tree/canary/examples/with-docker).
+
+- First we need to modify the `next.config.js` file so that the build output can be `standalone`, [as shown in the official documentation](https://github.com/vercel/next.js/tree/canary/examples/with-docker#in-existing-projects).
+
+  ```javascript
+  // next.config.js
+  module.exports = {
+    // ... rest of the configuration.
+    output: 'standalone',
+  }
+  ```
+
+After that, we can reuse the existing example by making the following modifications in the [provided Dockerfile](https://github.com/vercel/next.js/blob/canary/examples/with-docker/Dockerfile):
+
+- The official base image is defined as `FROM oven/bun AS base` and is released by [Oven, "the company behind Bun"](https://oven.sh/) in [DockerHub](https://hub.docker.com/r/oven/bun).
+
+- `Bun` is using by default a binary lockfile `bun.lockb` [for performance](https://bun.sh/docs/cli/install#manage-dependencies). In order to install a project's dependencies we need to copy first the `package.json` and the generated `bun.lockb` lockfile.
+
+  ```dockerfile
+  COPY package.json bun.lockb ./
+  ```
+
+- Installing using reproducible dependencies can be done with: `bun install --frozen-lockfile`
+
+  ```dockerfile
+  RUN bun install --frozen-lockfile
+  ```
+
+- The build step can be run using: `bun run build`
+
+  ```dockerfile
+  RUN bun run build
+  ```
+
+- The base image is [creating a unix group called `bun`](https://hub.docker.com/layers/oven/bun/latest/images/sha256-54c2a56911da96e9493393621dd9193e918cab61d1359b0c786b9fb3a02db8a4?context=explore). We don't need to create a new separate group `nodejs` as it was done in the previous version of the Dockerfile. We only need to change the ownership of the generated files from the build step to `nextjs:bun`.
+
+  ```dockerfile
+  RUN chown nextjs:bun .next
+  COPY --from=builder --chown=nextjs:bun /app/.next/standalone ./
+  COPY --from=builder --chown=nextjs:bun /app/.next/static ./.next/static
+  ```
+
+- Finally, the server can be run with: `bun server.js`
+
+  ```dockerfile
+  CMD ["bun", "server.js"]
+  ```
+
+- Optionally, my personal preference is to disable the collection of anonymous telemetry during the build step and for the final produced Docker image.
+
+  ```dockerfile
+  ENV NEXT_TELEMETRY_DISABLED 1
+  ```
+
+## Full Dockerfile
+
+The full Dockerfile with the above changes can now be added to the root of the Next.js project and is as followed:
+
+```dockerfile
+FROM oven/bun AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json bun.lockb ./
+RUN bun install --frozen-lockfile
+
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Disable telemetry during the build
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN bun run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+
+# Disable telemetry
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:bun .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:bun /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:bun /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT 3000
+
+# Set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["bun", "server.js"]
+```
+
+## Building the Docker image and running it as a container
+
+As before, the image can be built and tagged using:
+
+```bash
+docker build -t my-app .
+```
+
+Finally, running a container of the image:
+
+```bash
+docker run -p 3000:3000 my-app
+```
