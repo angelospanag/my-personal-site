@@ -1,6 +1,6 @@
 # 🌐 Angelos Panagiotopoulos personal website
 
-🔗 Live Site: [https://angelospanag.me](https://angelospanag.me)
+🔗 Live Site: [https://www.angelospanag.me/](https://www.angelospanag.me/)
 
 Hello, I am Angelos, a Contractor Software Engineer.
 
