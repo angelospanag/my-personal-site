@@ -6,7 +6,7 @@ Hello, I am Angelos, a Contractor Software Engineer.
 
 ## Where can I find your CV?
 
-Always available on my website along with my contact details: https://angelospanag.me/about
+It is always available on my website, along with my contact details: https://angelospanag.me/about
 
 ## Favourite languages/tools for software development?
 
