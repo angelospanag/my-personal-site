@@ -35,7 +35,9 @@
     "pliny": "0.4.0",
     "postcss": "^8.4.47",
     "react": "rc",
+    "react-confetti": "^6.4.0",
     "react-dom": "rc",
+    "react-use": "^17.6.0",
     "reading-time": "1.5.0",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-citation": "^2.2.1",
@@ -54,6 +56,7 @@
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
     "@types/mdx": "^2.0.13",
+    "@types/node": "22.14.1",
     "@types/react": "^18.3.12",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
