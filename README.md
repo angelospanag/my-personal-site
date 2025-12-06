@@ -10,7 +10,7 @@ It is always available on my website, along with my contact details: https://ang
 
 ## Favourite languages/tools for software development?
 
-Mainly Go and Python for backend development and React/TypeScript for frontend development. This blog is [using Next.js](https://github.com/angelospanag/my-personal-site) with a [starter blog template](https://github.com/timlrx/tailwind-nextjs-starter-blog) and [Vercel](https://vercel.com/) for automating its deployment.
+Mainly Go and Python for backend development and React/TypeScript for frontend development. This blog is [using Next.js with Bun](https://github.com/angelospanag/my-personal-site), based on an [existing starter blog template](https://github.com/timlrx/tailwind-nextjs-starter-blog) that I’ve customized, and [Vercel](https://vercel.com/) for automating its deployment.
 
 ## Other interests?
 
@@ -18,35 +18,18 @@ I love listening to heavy metal and playing electric guitar, reading science-fic
 
 ## Prerequisites
 
-- [Node 24](https://nodejs.org/en/download)
-- [pnpm](https://pnpm.io/next/installation)
+- [Bun](https://bun.com/)
 
 **MacOS (using `brew`)**
 
 ```bash
-brew install node@24 pnpm
+brew install oven-sh/bun/bun
 ```
 
 **Ubuntu/Debian**
 
 ```bash
-# Download and install nvm:
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-
-# in lieu of restarting the shell
-\. "$HOME/.nvm/nvm.sh"
-
-# Download and install Node.js:
-nvm install 24
-
-# Verify the Node.js version:
-node -v # Should print "v24.11.1".
-
-# Download and install pnpm:
-corepack enable pnpm
-
-# Verify pnpm version:
-pnpm -v
+curl -fsSL https://bun.com/install | bash
 ```
 
 ### Run development server
@@ -54,7 +37,7 @@ pnpm -v
 From the root of the project run:
 
 ```bash
-pnpm run dev
+bun start
 ```
 
 The development server will be available on http://localhost:3000

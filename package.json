@@ -2,12 +2,7 @@
   "name": "tailwind-nextjs-starter-blog",
   "version": "2.3.0",
   "private": true,
-  "engines": {
-    "node": ">=24"
-  },
-  "packageManager": "pnpm@10.24.0",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "start": "next dev",
     "dev": "cross-env INIT_CWD=$PWD next dev",
     "build": "cross-env INIT_CWD=$PWD next build && cross-env NODE_OPTIONS='--experimental-json-modules' node ./scripts/postbuild.mjs",

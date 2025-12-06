@@ -1,1 +1,1 @@
-npx --no-install lint-staged
+bun --no-install lint-staged
