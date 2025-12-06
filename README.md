@@ -18,25 +18,35 @@ I love listening to heavy metal and playing electric guitar, reading science-fic
 
 ## Prerequisites
 
-- [Node 22](https://nodejs.org/en/download)
+- [Node 24](https://nodejs.org/en/download)
 - [pnpm](https://pnpm.io/next/installation)
 
 **MacOS (using `brew`)**
 
 ```bash
-brew install node@22 pnpm
+brew install node@24 pnpm
 ```
 
 **Ubuntu/Debian**
 
 ```bash
-# Node
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-\. "$HOME/.nvm/nvm.sh"
-nvm install 22
+# Download and install nvm:
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 
-# pnpm
-curl -fsSL https://get.pnpm.io/install.sh | sh -
+# in lieu of restarting the shell
+\. "$HOME/.nvm/nvm.sh"
+
+# Download and install Node.js:
+nvm install 24
+
+# Verify the Node.js version:
+node -v # Should print "v24.11.1".
+
+# Download and install pnpm:
+corepack enable pnpm
+
+# Verify pnpm version:
+pnpm -v
 ```
 
 ### Run development server
