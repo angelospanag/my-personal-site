@@ -28,7 +28,7 @@ public/sitemap.xml
 # search
 /public/search.json
 
-# misc
+# MacOS
 .DS_Store
 
 # debug
@@ -45,3 +45,9 @@ yarn-error.log*
 
 # Contentlayer
 .contentlayer
+
+# Jetbrains
+.idea
+
+# Visual Studio Code
+.vscode
