@@ -2,7 +2,7 @@
 
 🔗 Live Site: [https://www.angelospanag.me/](https://www.angelospanag.me/)
 
-Hello, I am Angelos, a Contractor Software Engineer.
+Hello, I’m Angelos, a Software Engineer specializing in backend and frontend development.
 
 ## Where can I find your CV?
 
@@ -10,11 +10,15 @@ It is always available on my website, along with my contact details: https://ang
 
 ## Favourite languages/tools for software development?
 
-Mainly Go and Python for backend development and React/TypeScript for frontend development. This blog is [using Next.js with Bun](https://github.com/angelospanag/my-personal-site), based on an [existing starter blog template](https://github.com/timlrx/tailwind-nextjs-starter-blog) that I’ve customized, and [Vercel](https://vercel.com/) for automating its deployment.
+I work mainly with Go and Python on the backend, and React/TypeScript on the frontend. This blog
+is [built with Next.js and Bun](https://github.com/angelospanag/my-personal-site), customized from
+a [starter template](https://github.com/timlrx/tailwind-nextjs-starter-blog) and deployed
+via [Vercel](https://vercel.com/) for automated deployment.
 
 ## Other interests?
 
-I love listening to heavy metal and playing electric guitar, reading science-fiction and fantasy books, PC gaming and especially RPGs, exercising/running.
+I enjoy listening to heavy metal, playing electric guitar, reading science-fiction and fantasy, PC gaming (especially
+RPGs), and staying active through running and exercise.
 
 ## Prerequisites
 
