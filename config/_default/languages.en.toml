@@ -1,0 +1,23 @@
+locale = "en-us"
+label = "English"
+weight = 1
+
+title = "Angelos Panagiotopoulos"
+
+[params]
+  dateFormat = "2 January 2006"
+  mainSections = ["posts"]
+  description = "Software Engineer specializing in backend and frontend development."
+
+[params.author]
+  name = "Angelos Panagiotopoulos"
+  image = "img/avatar.jpeg"
+  headline = "Software Engineer"
+  bio = "Backend and frontend development, mainly with Go, Python, and React/TypeScript."
+  links = [
+    { github = "https://github.com/angelospanag" },
+    { linkedin = "https://www.linkedin.com/in/angelos-panagiotopoulos-94524b4a/" },
+    { x-twitter = "https://x.com/angelospanag" },
+    { mastodon = "https://mastodon.social/@angelospanag" },
+    { email = "mailto:angelospanag@protonmail.com" },
+  ]

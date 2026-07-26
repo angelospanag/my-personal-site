@@ -1,0 +1,19 @@
+[tools]
+hugo = "0.164.0"
+go = "1.26.5"
+
+[tasks.dev]
+description = "Start the Hugo development server"
+run = "hugo server"
+
+[tasks.build]
+description = "Build the production site into public/"
+run = "hugo --gc --minify"
+
+[tasks.deps]
+description = "Update the Congo theme module and tidy go.mod"
+run = ["hugo mod get -u ./...", "hugo mod tidy"]
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -rf public resources .hugo_build.lock"

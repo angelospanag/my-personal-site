@@ -1,0 +1,14 @@
+{
+  "name": "Angelos Panagiotopoulos",
+  "short_name": "AP",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#7c3aed",
+  "background_color": "#7c3aed",
+  "display": "standalone"
+}

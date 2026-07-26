@@ -1,0 +1,15 @@
+[[main]]
+  name = "Posts"
+  pageRef = "posts"
+  weight = 10
+
+[[main]]
+  name = "Tags"
+  pageRef = "tags"
+  weight = 20
+
+[[main]]
+  identifier = "search"
+  weight = 99
+  [main.params]
+    action = "search"
