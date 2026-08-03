@@ -7,12 +7,13 @@ Hello, I'm Angelos, a Software Engineer specializing in backend and frontend dev
 
 **Favourite languages/tools for software development?**
 
-I work mainly with Go and Python on the backend, and React/TypeScript on the frontend. This site is built with [Hugo](https://gohugo.io/) and the [Congo](https://github.com/jpanther/congo) theme.
+I work mainly with Go and Python on the backend, and React/TypeScript on the frontend.
 
 **What are you building?**
 
 - **[Diktyon](https://diktyon.angelospanag.me)** — a UK corporate intelligence tool for exploring company officers and PSCs as an interactive graph
 - **[Panoptes](https://panoptes.angelospanag.me)** — a privacy art piece showing you exactly what your browser reveals about you
+- **[my-personal-site](https://github.com/angelospanag/my-personal-site)** — the source for this very site, built with [Hugo](https://gohugo.io/) and the [Congo](https://github.com/jpanther/congo) theme
 - **[Riffle](https://github.com/angelospanag/riffle)** — a self-hosted RSS aggregator
 - **[Mind the Gap](https://github.com/angelospanag/mind-the-gap-extension)** — a browser extension for real-time London transport disruption alerts
 - **[Dotfiles](https://github.com/angelospanag/dotfiles)** — my personal shell configuration
