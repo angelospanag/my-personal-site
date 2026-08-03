@@ -1,0 +1,8 @@
+/* Congo's "profile" homepage layout centers all prose by design, which reads
+   badly for bulleted lists (wrapped lines end up centered instead of hanging
+   under the marker). Left-align just list content, leave everything else
+   (headings, paragraphs) centered as intended. */
+.prose ul,
+.prose ol {
+  text-align: left;
+}
