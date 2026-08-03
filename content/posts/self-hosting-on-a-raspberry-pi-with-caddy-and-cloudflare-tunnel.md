@@ -16,6 +16,7 @@ summary: 'Running several projects on a single Raspberry Pi, reachable on the in
   - [Container-backed projects](#container-backed-projects)
   - [Static sites](#static-sites)
 - [Adding more projects later](#adding-more-projects-later)
+- [Friendly local names on the LAN](#friendly-local-names-on-the-lan)
 - [Summary](#summary)
 
 ## Intro
@@ -121,8 +122,10 @@ Advanced DNS tab. Then:
 3. Left the records unrelated to the tunnel (the blog, email) as **DNS only** —
    no reason to change their behavior.
 4. Copied the two nameservers Cloudflare gave me.
-5. At Namecheap: Domain → **Nameservers** → **Custom DNS** → pasted in Cloudflare's
-   two nameservers.
+5. At Namecheap: Domain → **Nameservers** — specifically the main **Domain** tab;
+   "Advanced DNS" and "Personal DNS Server" look similar but aren't it and cost me
+   a few minutes of confusion — → **Custom DNS** → pasted in Cloudflare's two
+   nameservers.
 6. Waited for the "zone active" email — a few minutes in my case — then confirmed
    the blog and email forwarding both still worked.
 
@@ -170,6 +173,16 @@ root, so `~` resolves to `/root`, not my own home directory. It failed with
 *"Cannot determine default configuration path"* until I copied the config and
 credentials into `/etc/cloudflared` first, as above.
 
+Once it's up, it's worth confirming it's actually connected rather than just that
+the process started:
+```bash
+sudo systemctl status cloudflared --no-pager      # active (running)?
+sudo journalctl -u cloudflared -n 30 --no-pager    # look for "Registered tunnel connection"
+```
+The [Cloudflare Zero Trust dashboard](https://one.dash.cloudflare.com) →
+**Networks → Tunnels** shows the same thing from the other end — the tunnel should
+read **Healthy**.
+
 ## Deploying a project
 
 ### Container-backed projects
@@ -189,6 +202,21 @@ is exactly what's wanted when building natively on the Pi.
 ```bash
 podman compose up --build -d
 ```
+
+On a Pi with 2GB of RAM or less, that build can get OOM-killed partway through —
+worth adding swap upfront rather than debugging a mysteriously-killed build later:
+```bash
+sudo dphys-swapfile swapoff
+sudo sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/' /etc/dphys-swapfile
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+```
+
+Also worth knowing: `restart: unless-stopped` in the compose file only restarts
+containers on crash while Podman itself is running — it won't bring them back
+after a full power cycle unless systemd units are generated for them
+(`podman generate systemd`), which matters if the Pi needs to recover unattended
+after a power cut.
 
 Then a Caddy site block:
 ```
@@ -219,6 +247,11 @@ sudo chown -R root:root /var/www/panoptes
 sudo chmod -R o+rX /var/www/panoptes
 ```
 
+One thing to keep in mind: content updated via `git pull` in the home-directory
+clone doesn't automatically reach `/var/www` — I re-run the `cp -r` after each
+pull. A symlink would keep them in sync automatically, if that matters more than
+avoiding the permissions question in the first place.
+
 ```
 http://panoptes.angelospanag.me {
     root * /var/www/panoptes
@@ -245,6 +278,35 @@ sudo systemctl restart cloudflared   # Caddy hot-reloads; cloudflared needs a re
 
 No new tunnel, no new Cloudflare setup, no router configuration — just a hostname
 in one file and a block in the Caddyfile.
+
+Before trusting DNS and the tunnel, I check Caddy directly first — it isolates
+whether a problem is Caddy's routing or something further upstream:
+```bash
+curl -v -H "Host: newproject.angelospanag.me" http://localhost:80
+```
+Only once that returns the right content do I bother checking the public URL from
+a device off the home network. This one command saved me a lot of time chasing the
+wrong layer while getting Panoptes working — a 403 that turned out to be a Caddy
+file-permission issue looked, at first glance, like a tunnel or DNS problem.
+
+## Friendly local names on the LAN
+
+Raspberry Pi OS ships `avahi-daemon` (mDNS), so the Pi is already reachable as
+`raspberrypi.local` on the local network without any of the above. For a single
+project that's often enough on its own:
+```bash
+sudo hostnamectl set-hostname diktyon
+sudo sed -i 's/raspberrypi/diktyon/g' /etc/hosts
+sudo systemctl restart avahi-daemon
+```
+(Windows needs Bonjour installed separately for `.local` names to resolve, and a
+reboot sometimes helps the new name propagate.)
+
+A single renamed hostname isn't enough once there's more than one project, though.
+Either publish extra mDNS names per project with `avahi-publish -a -R
+<name>.local <pi-ip>` (wrapped in a systemd unit so it survives reboots), or, more
+scalably, run `dnsmasq` or Pi-hole on the Pi as the LAN's own DNS server with a
+static `address=/name.local/<pi-ip>` entry per project.
 
 ## Summary
 
