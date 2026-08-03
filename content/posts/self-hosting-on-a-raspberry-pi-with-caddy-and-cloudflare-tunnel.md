@@ -47,8 +47,7 @@ compose`.
 
 ```bash
 sudo apt update
-sudo apt install -y podman git
-sudo apt install podman-compose
+sudo apt install -y podman podman-compose git
 podman-compose --version
 ```
 
