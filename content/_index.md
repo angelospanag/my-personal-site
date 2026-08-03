@@ -9,6 +9,11 @@ Hello, I'm Angelos, a Software Engineer specializing in backend and frontend dev
 
 I work mainly with Go and Python on the backend, and React/TypeScript on the frontend. This site is built with [Hugo](https://gohugo.io/) and the [Congo](https://github.com/jpanther/congo) theme.
 
+**What are you building?**
+
+- **[Diktyon](https://diktyon.angelospanag.me)** — a UK corporate intelligence tool for exploring company officers and PSCs as an interactive graph
+- **[Panoptes](https://panoptes.angelospanag.me)** — a privacy art piece showing you exactly what your browser reveals about you
+
 **Other interests?**
 
 I enjoy listening to heavy metal, playing electric guitar, reading science-fiction and fantasy, PC gaming (especially RPGs), and staying active through running and exercise.
