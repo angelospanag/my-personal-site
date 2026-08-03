@@ -47,22 +47,14 @@ compose`.
 
 ```bash
 sudo apt update
-sudo apt install -y podman podman-compose git
+sudo apt install -y podman git
+sudo apt install podman-compose
 podman-compose --version
 ```
 
-On Raspberry Pi OS, `podman-compose` sometimes ends up not actually on `$PATH`
-despite the apt package listing it as installed. If `podman-compose --version`
-errors, or `podman compose up` later complains it can't find a compose provider,
-`pipx` is the reliable fallback:
-
-```bash
-sudo apt install -y pipx
-pipx install podman-compose
-pipx ensurepath
-source ~/.bashrc
-podman-compose --version
-```
+`podman compose` (the built-in subcommand, space not hyphen) auto-detects and
+delegates to `podman-compose`, so from here on it's the same commands you'd expect
+from Docker Compose.
 
 One more first-run gotcha: a fresh Podman install on Debian-based systems has no
 default image search registry configured, so a bare image name like
