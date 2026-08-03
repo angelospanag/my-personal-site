@@ -13,6 +13,9 @@ I work mainly with Go and Python on the backend, and React/TypeScript on the fro
 
 - **[Diktyon](https://diktyon.angelospanag.me)** — a UK corporate intelligence tool for exploring company officers and PSCs as an interactive graph
 - **[Panoptes](https://panoptes.angelospanag.me)** — a privacy art piece showing you exactly what your browser reveals about you
+- **[Riffle](https://github.com/angelospanag/riffle)** — a self-hosted RSS aggregator
+- **[Mind the Gap](https://github.com/angelospanag/mind-the-gap-extension)** — a browser extension for real-time London transport disruption alerts
+- **[Dotfiles](https://github.com/angelospanag/dotfiles)** — my personal shell configuration
 
 **Other interests?**
 
