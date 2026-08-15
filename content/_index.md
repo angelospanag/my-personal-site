@@ -16,7 +16,7 @@ I work mainly with Go and Python on the backend, and React/TypeScript on the fro
 - **[my-personal-site](https://github.com/angelospanag/my-personal-site)** — the source for this very site, built with [Hugo](https://gohugo.io/) and the [Congo](https://github.com/jpanther/congo) theme
 - **[Riffle](https://github.com/angelospanag/riffle)** — a self-hosted RSS aggregator. Go/Huma/PostgreSQL + Next.js
 - **[Mind the Gap](https://chromewebstore.google.com/detail/mind-the-gap/bgobdjpalakpclmeioalmgpncggedehl)** — a browser extension for real-time London transport disruption alerts
-- **[Dotfiles](https://github.com/angelospanag/dotfiles)** — my personal shell configuration
+- **[dotfiles](https://github.com/angelospanag/dotfiles)** — my personal shell configuration
 
 **Other interests?**
 
