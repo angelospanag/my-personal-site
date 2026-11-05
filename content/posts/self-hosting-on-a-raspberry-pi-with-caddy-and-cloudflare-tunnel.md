@@ -22,8 +22,8 @@ summary: 'Running several projects on a single Raspberry Pi, reachable on the in
 ## Intro
 
 I had a spare Raspberry Pi at home and two personal projects I wanted reachable on
-the internet: [Diktyon](https://diktyon.angelospanag.me), a UK corporate
-intelligence tool, and [Panoptes](https://panoptes.angelospanag.me), a privacy art
+the internet: [Diktyon](https://github.com/angelospanag/diktyon), a UK corporate
+intelligence tool, and [Panoptes](https://github.com/angelospanag/panoptes), a privacy art
 piece. Neither needed a VPS's worth of compute, and I didn't want to deal with
 router port forwarding, dynamic IPs, or manually managing TLS certificates.
 
@@ -307,7 +307,6 @@ Raspberry Pi turned out to be a genuinely solid host for a couple of side projec
 The part I like most is that adding a third project next time is going to be five
 minutes of config, not a repeat of any of the setup above.
 
-You can see the results at
-[diktyon.angelospanag.me](https://diktyon.angelospanag.me) and
-[panoptes.angelospanag.me](https://panoptes.angelospanag.me), with the source for
-both on my [GitHub](https://github.com/angelospanag).
+Neither project is hosted any more, but the source for both is on GitHub:
+[Diktyon](https://github.com/angelospanag/diktyon) and
+[Panoptes](https://github.com/angelospanag/panoptes).

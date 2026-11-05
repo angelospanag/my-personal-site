@@ -11,8 +11,8 @@ I work mainly with Go and Python on the backend, and React/TypeScript on the fro
 
 **What are you building?**
 
-- **[Diktyon](https://diktyon.angelospanag.me)** — a UK corporate intelligence tool for exploring company officers and PSCs as an interactive graph. Go/Huma/Redis + Next.js ([source](https://github.com/angelospanag/diktyon))
-- **[Panoptes](https://panoptes.angelospanag.me)** — a privacy art piece showing you exactly what your browser reveals about you ([source](https://github.com/angelospanag/panoptes))
+- **[Diktyon](https://github.com/angelospanag/diktyon)** — a UK corporate intelligence tool for exploring company officers and PSCs as an interactive graph. Go/Huma/Redis + Next.js
+- **[Panoptes](https://github.com/angelospanag/panoptes)** — a privacy art piece showing you exactly what your browser reveals about you
 - **[my-personal-site](https://github.com/angelospanag/my-personal-site)** — the source for this very site, built with [Hugo](https://gohugo.io/) and the [Congo](https://github.com/jpanther/congo) theme
 - **[Riffle](https://github.com/angelospanag/riffle)** — a self-hosted RSS aggregator. Go/Huma/PostgreSQL + Next.js
 - **[Mind the Gap](https://chromewebstore.google.com/detail/mind-the-gap/bgobdjpalakpclmeioalmgpncggedehl)** — a browser extension for real-time London transport disruption alerts
