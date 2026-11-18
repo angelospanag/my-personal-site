@@ -1,6 +1,6 @@
 [tools]
-hugo = "0.169.0"
-go = "1.27.3"
+hugo = "0.170.1"
+go = "1.27.4"
 
 [tasks.dev]
 description = "Start the Hugo development server"
